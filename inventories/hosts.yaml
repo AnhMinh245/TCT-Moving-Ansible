@@ -82,7 +82,7 @@ all:
       ansible_host: 10.64.161.212
     # MTT Anna
     dri-ehdmttanadb205:
-      nsible_host: 10.64.160.205
+      ansible_host: 10.64.160.205
     dri-ehdmttanadb206:
       ansible_host: 10.64.160.206
     dri-ehdmttanadb207:
