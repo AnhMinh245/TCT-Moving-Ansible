@@ -1,0 +1,104 @@
+# File này chứa tất cả thông tin của các host Ansible quản lý
+---
+all:
+  hosts:
+    # HDDT Docs
+    dri-ehdxmldb135:
+      ansible_host: 10.64.161.135
+    dri-ehdxmldb136:
+      ansible_host: 10.64.161.136
+    dri-ehdxmldb137:
+      ansible_host: 10.64.161.137
+    dri-ehdxmldb138:
+      ansible_host: 10.64.161.138
+    dri-ehdxmldb139:
+      ansible_host: 10.64.161.139
+    dri-ehdxmldb140:
+      ansible_host: 10.64.161.140
+    dri-ehdxmldb141:
+      ansible_host: 10.64.161.141
+    dri-ehdxmldb142:
+      ansible_host: 10.64.161.142
+    #HDDT Anna
+    dri-ehdanadb172:
+      ansible_host: 10.64.160.172
+    dri-ehdanadb173:
+      ansible_host: 10.64.160.173
+    dri-ehdanadb174:
+      ansible_host: 10.64.160.174
+    dri-ehdanadb175:
+      ansible_host: 10.64.160.175
+    dri-ehdanadb176:
+      ansible_host: 10.64.160.176
+    dri-ehdanadb177:
+      ansible_host: 10.64.160.177
+    dri-ehdanadb178:
+      ansible_host: 10.64.160.178
+    dri-ehdanadb179:
+      ansible_host: 10.64.160.179
+    dri-ehdanadb180:
+      ansible_host: 10.64.160.180
+    dri-ehdanadb181:
+      ansible_host: 10.64.160.181
+    dri-ehdanadb182:
+      ansible_host: 10.64.160.182
+    dri-ehdanadb183:
+      ansible_host: 10.64.160.183
+    dri-ehdanadb184:
+      ansible_host: 10.64.160.184
+    dri-ehdanadb185:
+      ansible_host: 10.64.160.185
+    dri-ehdanadb186:
+      ansible_host: 10.64.160.186
+    dri-ehdanadb187:
+      ansible_host: 10.64.160.187
+
+    # MTT Search
+    dri-ehdmttsearchdb205:
+      ansible_host: 10.64.159.205
+    dri-ehdmttsearchdb206:
+      ansible_host: 10.64.159.206
+    dri-ehdmttsearchdb207:
+      ansible_host: 10.64.159.207
+    dri-ehdmttsearchdb208:
+      ansible_host: 10.64.159.208
+    # MTT Transaction
+    dri-ehdmtttransdb207:
+      ansible_host: 10.64.158.207
+    dri-ehdmtttransdb208:
+      ansible_host: 10.64.158.208
+    dri-ehdmtttransdb209:
+      ansible_host: 10.64.158.209
+    dri-ehdmtttransdb210:
+      ansible_host: 10.64.158.210
+    # MTT Docs
+    dri-ehdmttxmldb209:
+      ansible_host: 10.64.161.209
+    dri-ehdmttxmldb210:
+      ansible_host: 10.64.161.210
+    dri-ehdmttxmldb211:
+      ansible_host: 10.64.161.211
+    dri-ehdmttxmldb212:
+      ansible_host: 10.64.161.212
+    # MTT Anna
+    dri-ehdmttanadb205:
+      nsible_host: 10.64.160.205
+    dri-ehdmttanadb206:
+      ansible_host: 10.64.160.206
+    dri-ehdmttanadb207:
+      ansible_host: 10.64.160.207
+    dri-ehdmttanadb208:
+      ansible_host: 10.64.160.208
+
+  children:
+    hddt:
+      children:
+        hddt_docs: dri-ehdxmldb135 dri-ehdxmldb136 dri-ehdxmldb137 dri-ehdxmldb138 dri-ehdxmldb139 dri-ehdxmldb140 dri-ehdxmldb141 dri-ehdxmldb142
+        hddt_anna: dri-ehdanadb172 dri-ehdanadb173 dri-ehdanadb174 dri-ehdanadb175 dri-ehdanadb176 dri-ehdanadb177 dri-ehdanadb178 dri-ehdanadb179 dri-ehdanadb180 dri-ehdanadb181 dri-ehdanadb182 dri-ehdanadb183 dri-ehdanadb184 dri-ehdanadb185 dri-ehdanadb186 dri-ehdanadb187
+
+    mtt:
+      children:
+        mtt_search: dri-ehdmttsearchdb205 dri-ehdmttsearchdb206 dri-ehdmttsearchdb207 dri-ehdmttsearchdb208
+        mtt_transaction: dri-ehdmtttransdb207 dri-ehdmtttransdb208 dri-ehdmtttransdb209 dri-ehdmtttransdb210
+        mtt_docs: dri-ehdmttxmldb209 dri-ehdmttxmldb210 dri-ehdmttxmldb211 dri-ehdmttxmldb212
+        mtt_anna: dri-ehdmttanadb205 dri-ehdmttanadb206 dri-ehdmttanadb207 dri-ehdmttanadb208
