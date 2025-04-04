@@ -1,0 +1,10 @@
+all:
+  hosts:
+    rhel8-02:
+      ansible_host: 10.1.10.52
+      ansible_user: root
+      ansible_ssh_pass: qq11
+    rhel8-03:
+      ansible_host: 10.1.10.53
+      ansible_user: root
+      ansible_ssh_pass: qq11

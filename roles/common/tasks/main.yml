@@ -1,0 +1,35 @@
+---
+# tasks file for roles/os_initial_setup
+
+- name: 4.2 - Clear all subscriptions (best effort)
+  ansible.builtin.command: "{{ item }}"
+  register: sub_manager_result
+  failed_when: "sub_manager_result.rc != 0 and 'No subscriptions to remove' not in sub_manager_result.stderr"
+  changed_when: "'removed' in sub_manager_result.stdout or 'cleaned' in sub_manager_result.stdout"
+  loop:
+    - subscription-manager remove --all
+    - subscription-manager clean
+  become: yes
+  tags: [subscription] # Gắn tag để có thể chạy riêng task này nếu muốn
+  # Lưu ý: Module command không hoàn toàn idempotent.
+  # failed_when và changed_when giúp Ansible xử lý tốt hơn khi chạy lại.
+
+- name: 4.3 - Stop and disable firewalld service
+  ansible.builtin.systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+  become: yes
+  tags: [firewalld]
+
+- name: 4.4 - Disable SELinux
+  ansible.posix.selinux:
+    state: disabled # Trạng thái mong muốn trong file cấu hình (/etc/selinux/config)
+    policy: targeted # Chính sách mặc định, cần thiết khi state là enforcing/permissive
+  become: yes
+  tags: [selinux]
+  notify: Reboot Server # Gọi handler để thông báo cần reboot
+
+# Lưu ý quan trọng: Thay đổi SELinux từ enforcing/permissive sang disabled
+# yêu cầu khởi động lại máy chủ để có hiệu lực hoàn toàn.
+# Bạn cần thêm handler để nhắc nhở hoặc tự động reboot (cẩn thận khi tự động).
