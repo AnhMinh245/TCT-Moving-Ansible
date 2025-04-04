@@ -1,0 +1,29 @@
+---
+# tasks file for roles/configure_repo
+
+- name: 4.5 - Create repository file from template
+  ansible.builtin.template:
+    src: rhel8.repo.j2                   # Tên file template trong thư mục templates/
+    dest: /etc/yum.repos.d/rhel8.repo    # Đường dẫn đích trên máy chủ target
+    owner: root
+    group: root
+    mode: '0644'                       # Quyền truy cập file
+  become: true
+  notify: Yum Clean All                # Gọi handler sau khi file thay đổi
+
+- name: Flush handlers to ensure repo is cleaned immediately
+  ansible.builtin.meta: flush_handlers
+
+# Task kiểm tra (tùy chọn, không thay đổi hệ thống)
+- name: Verify yum repolist (optional check)
+  ansible.builtin.command: yum repolist -v
+  register: yum_repolist_output
+  changed_when: false # Lệnh này không thay đổi hệ thống
+  become: true
+  tags: [repo_check] # Tag riêng để chạy kiểm tra nếu muốn
+
+- name: Display yum repolist output (optional)
+  ansible.builtin.debug:
+    var: yum_repolist_output.stdout_lines
+  when: yum_repolist_output is defined
+  tags: [repo_check]

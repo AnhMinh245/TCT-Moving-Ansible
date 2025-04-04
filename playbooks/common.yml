@@ -1,0 +1,7 @@
+---
+- name: Apply OS Initial Setup Steps
+  hosts: all # Hoặc 'all' nếu muốn áp dụng cho tất cả host trong inventory
+  become: true # Chạy các task với quyền root (sudo)
+  roles:
+    - common # Gọi role 'common' để thực hiện các bước thiết lập hệ điều hành 
+    
