@@ -18,8 +18,13 @@ ansible-galaxy collection install community.general
 ## Các phần đã chạy thử
 
 ```bash
-roles/common/tasks/main.yml
-playbooks/set_up_os.yml
+#ROLES
+roles/common/tasks/
+roles/configure_system_limits/
+
+#PLAYBOOKS
+playbooks/common.yml
+
 ```
 
 ## Các phần chưa chạy thử

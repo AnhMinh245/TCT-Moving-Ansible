@@ -1,0 +1,27 @@
+---
+# tasks file for roles/install_common_tools
+
+- name: 4.7 - Install monitoring and debugging tools
+  ansible.builtin.yum:
+    name:
+      - java-1.8.0-openjdk # Tên gói đầy đủ thường là java-1.8.0-openjdk
+      - java-1.8.0-openjdk-devel # Tên gói đầy đủ thường là java-1.8.0-openjdk-devel
+      - lsof
+      - telnet
+      - wget
+      - net-tools
+      - hdparm
+      - iotop
+      - iftop
+      - nfs-utils
+      - rsync
+      - sshpass
+      - pssh
+      - sysstat
+      - dstat
+      - htop
+      - unzip
+      - python27 # Lưu ý: Python 2.7 đã hết hỗ trợ, cân nhắc nếu thực sự cần
+    state: present # Đảm bảo các gói được cài đặt
+    update_cache: yes # Tương đương chạy 'yum makecache' trước khi cài
+  become: true

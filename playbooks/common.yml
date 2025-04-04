@@ -7,4 +7,7 @@
       tags: common # Gán tag 'common' cho role này
     - role: configure_system_limits # Gọi role 'configure_system_limits' để cấu hình giới hạn hệ thống
       tags: limits # Gán tag 'configure_system_limits' cho role này
+    - role: install_common_tools # Gọi role 'install_common_tools' để cài đặt các công cụ thông dụng
+      tags: tools # Gán tag 'install_common_tools' cho role này
+    
     
