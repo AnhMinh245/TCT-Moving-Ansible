@@ -1,0 +1,13 @@
+---
+# handlers file for roles/os_initial_setup
+- name: Reboot Server
+  ansible.builtin.debug:
+    msg: "SELinux state changed. Please reboot the server '{{ inventory_hostname }}' for the changes to take full effect."
+  listen: Reboot Server # Tên này phải khớp với tên trong 'notify' của task SELinux
+
+# Hoặc nếu bạn muốn tự động reboot (CẨN THẬN KHI DÙNG TRÊN PRODUCTION):
+# - name: Reboot Server Now
+#   ansible.builtin.reboot:
+#     msg: "Rebooting server '{{ inventory_hostname }}' to apply SELinux changes."
+#     reboot_timeout: 3600 # Thời gian chờ reboot (giây)
+#   listen: Reboot Server
