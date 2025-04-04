@@ -1,0 +1,8 @@
+---
+# handlers file for roles/configure_repo
+- name: Yum Clean All
+  ansible.builtin.command: yum clean all
+  args:
+    warn: false # Tắt cảnh báo về việc dùng command cho yum
+  become: true
+  listen: Yum Clean All # Tên này phải khớp với tên trong 'notify'
