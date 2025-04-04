@@ -30,5 +30,6 @@ playbooks/common.yml
 ## Các phần chưa chạy thử
 
 - Role và playbook Repository
+- Role install_common_tools do chưa có repo
 
 

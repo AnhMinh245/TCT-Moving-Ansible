@@ -3,4 +3,7 @@
   hosts: all # Hoặc 'all' nếu muốn áp dụng cho tất cả host trong inventory
   become: true # Chạy các task với quyền root (sudo)
   roles:
-    - configure_repo # Gọi role 'configure_repo' để thiết lập repository
+    - role: configure_repo # Gọi role 'configure_repo' để thiết lập repository
+      tags: repo # Gán tag 'configure_repo' cho role này
+    - role: install_common_tools # Gọi role 'install_common_tools' để cài đặt các công cụ thông dụng
+      tags: tools # Gán tag 'install_common_tools' cho role này

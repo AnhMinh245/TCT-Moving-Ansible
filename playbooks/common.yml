@@ -1,13 +1,13 @@
 ---
 - name: Apply OS Initial Setup Steps
   hosts: all # Hoặc 'all' nếu muốn áp dụng cho tất cả host trong inventory
+  gather_facts: false # Không thu thập thông tin hệ thống trước khi chạy playbook
   become: true # Chạy các task với quyền root (sudo)
   roles:
     - role: common # Gọi role 'common' để thực hiện các bước thiết lập hệ điều hành
       tags: common # Gán tag 'common' cho role này
     - role: configure_system_limits # Gọi role 'configure_system_limits' để cấu hình giới hạn hệ thống
       tags: limits # Gán tag 'configure_system_limits' cho role này
-    - role: install_common_tools # Gọi role 'install_common_tools' để cài đặt các công cụ thông dụng
-      tags: tools # Gán tag 'install_common_tools' cho role này
+    
     
     
