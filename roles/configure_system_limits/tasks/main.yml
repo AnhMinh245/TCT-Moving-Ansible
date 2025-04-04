@@ -1,0 +1,73 @@
+---
+# tasks file for roles/configure_system_limits
+
+- name: 4.6 - Configure Kernel parameters (sysctl.conf)
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.conf # Ghi trực tiếp vào file này (hoặc tạo file riêng trong /etc/sysctl.d/)
+    state: present
+    reload: yes # Tự động reload (chạy sysctl -p /etc/sysctl.conf) nếu có thay đổi
+  become: true
+  loop:
+    - { key: 'net.ipv4.tcp_keepalive_time', value: '60' }
+    - { key: 'net.ipv4.tcp_keepalive_probes', value: '3' }
+    - { key: 'net.ipv4.tcp_keepalive_intvl', value: '10' }
+    - { key: 'net.core.rmem_max', value: '16777216' }
+    - { key: 'net.core.wmem_max', value: '16777216' }
+    - { key: 'net.core.rmem_default', value: '16777216' }
+    - { key: 'net.core.wmem_default', value: '16777216' }
+    - { key: 'net.core.optmem_max', value: '40960' }
+    - { key: 'net.ipv4.tcp_rmem', value: '4096 87380 16777216' }
+    - { key: 'net.ipv4.tcp_wmem', value: '4096 65536 16777216' }
+    - { key: 'vm.max_map_count', value: '1048575' }
+  notify: Apply sysctl changes # Gọi handler để chạy sysctl --system
+
+- name: 4.6 - Configure user limits (limits.conf)
+  community.general.pam_limits:
+    dest: /etc/security/limits.conf # File đích
+    domain: "{{ item.domain }}"
+    limit_type: "{{ item.limit_type }}"
+    limit_item: "{{ item.limit_item }}"
+    value: "{{ item.value }}"
+    # use_max: yes # Có thể cần nếu muốn ghi đè thay vì thêm dòng mới (tuỳ cấu hình mặc định)
+  become: true
+  loop:
+    # Cassandra limits
+    - { domain: 'cassandra', limit_type: 'soft', limit_item: 'nofile', value: '1048576' }
+    - { domain: 'cassandra', limit_type: 'hard', limit_item: 'nofile', value: '1048576' }
+    - { domain: 'cassandra', limit_type: 'soft', limit_item: 'memlock', value: 'unlimited' }
+    - { domain: 'cassandra', limit_type: 'hard', limit_item: 'memlock', value: 'unlimited' }
+    - { domain: 'cassandra', limit_type: 'soft', limit_item: 'as', value: 'unlimited' }
+    - { domain: 'cassandra', limit_type: 'hard', limit_item: 'as', value: 'unlimited' }
+    - { domain: 'cassandra', limit_type: '-', limit_item: 'memlock', value: 'unlimited' } # Dấu '-' tương ứng với cả soft và hard
+    - { domain: 'cassandra', limit_type: '-', limit_item: 'nofile', value: '1048576' }
+    - { domain: 'cassandra', limit_type: '-', limit_item: 'nproc', value: '32768' }
+    - { domain: 'cassandra', limit_type: '-', limit_item: 'as', value: 'unlimited' }
+    # RMA limits
+    - { domain: 'rma', limit_type: 'soft', limit_item: 'nofile', value: '1048576' }
+    - { domain: 'rma', limit_type: 'hard', limit_item: 'nofile', value: '1048576' }
+    - { domain: 'rma', limit_type: '-', limit_item: 'nofile', value: '1048576' }
+    # Wildcard limits
+    - { domain: '*', limit_type: 'soft', limit_item: 'nofile', value: '1048576' }
+    - { domain: '*', limit_type: 'hard', limit_item: 'nofile', value: '1048576' }
+    - { domain: '*', limit_type: 'soft', limit_item: 'as', value: 'unlimited' }
+    - { domain: '*', limit_type: 'hard', limit_item: 'as', value: 'unlimited' }
+    - { domain: '*', limit_type: 'soft', limit_item: 'memlock', value: 'unlimited' }
+    - { domain: '*', limit_type: 'hard', limit_item: 'memlock', value: 'unlimited' }
+    # Root limits
+    - { domain: 'root', limit_type: 'soft', limit_item: 'nofile', value: '1048576' }
+    - { domain: 'root', limit_type: 'hard', limit_item: 'nofile', value: '1048576' }
+    - { domain: 'root', limit_type: 'soft', limit_item: 'memlock', value: 'unlimited' }
+    - { domain: 'root', limit_type: 'hard', limit_item: 'memlock', value: 'unlimited' }
+    - { domain: 'root', limit_type: 'soft', limit_item: 'as', value: 'unlimited' }
+    - { domain: 'root', limit_type: 'hard', limit_item: 'as', value: 'unlimited' }
+    - { domain: 'root', limit_type: '-', limit_item: 'memlock', value: 'unlimited' }
+    - { domain: 'root', limit_type: '-', limit_item: 'nofile', value: '1048576' }
+    - { domain: 'root', limit_type: '-', limit_item: 'nproc', value: '32768' }
+    - { domain: 'root', limit_type: '-', limit_item: 'as', value: 'unlimited' }
+  notify: Limits require reboot # Thông báo cần reboot cho limits.conf
+
+# Cần flush handlers để đảm bảo sysctl được áp dụng trước khi các bước sau có thể cần đến nó
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

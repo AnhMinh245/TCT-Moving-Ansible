@@ -6,6 +6,13 @@
 
 ### Hướng dẫn cài đặt
 
+### Các package cần cài đặt
+
+```bash
+ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install community.general
+```
+
 ### Hướng dẫn sử dụng
 
 ## Các phần đã chạy thử

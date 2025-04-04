@@ -1,0 +1,16 @@
+---
+# handlers file for roles/configure_system_limits
+- name: Apply sysctl changes
+  ansible.builtin.command: sysctl --system
+  args:
+    warn: false
+  become: true
+  listen: Apply sysctl changes
+
+- name: Limits require reboot
+  ansible.builtin.debug:
+    msg: "Changes to /etc/security/limits.conf may require a reboot or re-login for user '{{ item.domain }}' to take full effect."
+  loop: "{{ notified_items | default([]) }}" # Lấy danh sách items đã trigger notify này
+  loop_control:
+    label: "{{ item.domain }}"
+  listen: Limits require reboot

@@ -3,5 +3,5 @@
   hosts: all # Hoặc 'all' nếu muốn áp dụng cho tất cả host trong inventory
   become: true # Chạy các task với quyền root (sudo)
   roles:
-    - common # Gọi role 'common' để thực hiện các bước thiết lập hệ điều hành 
-    
+    - common # Gọi role 'common' để thực hiện các bước thiết lập hệ điều hành
+    - configure_system_limits # Gọi role 'configure_system_limits' để cấu hình giới hạn hệ thống
