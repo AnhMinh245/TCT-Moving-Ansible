@@ -2,8 +2,6 @@
 # handlers file for roles/configure_system_limits
 - name: Apply sysctl changes
   ansible.builtin.command: sysctl --system
-  args:
-    warn: false
   become: true
   listen: Apply sysctl changes
 
