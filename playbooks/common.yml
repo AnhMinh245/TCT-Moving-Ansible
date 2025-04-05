@@ -8,6 +8,9 @@
       tags: common # Gán tag 'common' cho role này
     - role: configure_system_limits # Gọi role 'configure_system_limits' để cấu hình giới hạn hệ thống
       tags: limits # Gán tag 'configure_system_limits' cho role này
+    - role: os_hardening # Gọi role 'os_hardening' để thực hiện các bước bảo mật hệ điều hành
+      tags: hardening # Gán tag 'os_hardening' cho role này
+    
     
     
     
