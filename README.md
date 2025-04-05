@@ -21,9 +21,11 @@ ansible-galaxy collection install community.general
 #ROLES
 roles/common/tasks/
 roles/configure_system_limits/
+roles/os_hardening/
 
 #PLAYBOOKS
 playbooks/common.yml
+
 
 ```
 
