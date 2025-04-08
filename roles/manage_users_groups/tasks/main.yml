@@ -1,0 +1,48 @@
+---
+# tasks file for roles/manage_users_groups
+
+- name: "Bước 9: Create required groups"
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
+    state: present
+  become: true
+  loop:
+    - { name: 'hddt', gid: 5001 }
+    - { name: 'bkadm', gid: 5003 }
+    - { name: 'dbadm', gid: 5002 }
+    - { name: 'rma', gid: 6001 }
+    - { name: 'monitor', gid: 6002 }
+    - { name: 'node_exporter', gid: 7001 }
+    - { name: 'splunk', gid: 7002 }
+
+- name: "Bước 9: Create required users"
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    uid: "{{ item.uid }}"
+    group: "{{ item.group }}"             # Primary group
+    groups: "{{ item.groups | default(omit) }}" # Secondary groups (omit if not specified)
+    state: present
+    create_home: yes                    # Tạo home directory (thường là cần thiết)
+    # shell: /bin/bash                  # Có thể chỉ định shell nếu muốn
+  become: true
+  loop:
+    - { name: 'sysadmin', uid: 5001, group: 'hddt', groups: 'wheel' }
+    - { name: 'backupadm', uid: 5003, group: 'bkadm' }
+    - { name: 'dbadmin', uid: 5002, group: 'dbadm', groups: 'wheel' }
+    - { name: 'rma', uid: 6001, group: 'rma' }
+    - { name: 'monitor', uid: 6002, group: 'monitor' }
+    - { name: 'node_exporter', uid: 7001, group: 'node_exporter' }
+    - { name: 'splunk', uid: 7002, group: 'splunk' }
+    # Thêm user appadm từ Bước 10 nếu cần
+    # - { name: 'appadm', uid: 5004, group: 'hddt', groups: 'wheel' }
+
+- name: "Bước 9: Modify cassandra user groups"
+  ansible.builtin.user:
+    name: cassandra
+    groups: bkadm       # Nhóm phụ cần thêm/đảm bảo tồn tại
+    append: yes         # Thêm nhóm 'bkadm' vào các nhóm phụ hiện có của user cassandra
+    state: present      # Đảm bảo user tồn tại
+  become: true
+  # Lưu ý: Task này giả định user 'cassandra' đã tồn tại (thường được tạo khi cài DSE).
+  # Nếu chưa chắc chắn, bạn có thể thêm 'ignore_errors: true' hoặc kiểm tra sự tồn tại trước.

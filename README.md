@@ -33,5 +33,4 @@ playbooks/common.yml
 
 - Role và playbook Repository
 - Role install_common_tools do chưa có repo
-
-
+- Role và playbooks users-groups

@@ -1,0 +1,6 @@
+---
+- name: Create and manage users and groups
+  hosts: all
+  become: true
+  roles:
+  - manage_users_groups # <--- Thêm role mới
