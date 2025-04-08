@@ -1,0 +1,6 @@
+---
+- name: Apply OS Initial Setup Steps
+  hosts: all
+  become: true
+  roles:
+  - install_ntp # <--- Thêm role mới

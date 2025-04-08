@@ -1,0 +1,61 @@
+---
+# tasks file for roles/install_software_ntp
+
+- name: "Bước 11: Install python27 and DSE"
+  ansible.builtin.yum:
+    name:
+      - python27         # Vẫn lưu ý về Python 2.7 EOL và khả năng không có sẵn
+      - dse-full-6.8.47
+    state: present
+    update_cache: true # Chạy 'yum makecache' trước khi cài
+  become: true
+
+- name: "Bước 11: Install chrony for NTP"
+  ansible.builtin.yum:
+    name: chrony
+    state: present
+  become: true
+
+- name: "Bước 11: Comment out default pool line in chrony.conf"
+  ansible.builtin.lineinfile:
+    path: /etc/chrony.conf
+    regexp: '^pool\s+2\.rhel\.pool\.ntp\.org\s+iburst'
+    line: '#pool 2.rhel.pool.ntp.org iburst' # Đảm bảo dòng này được comment
+    state: present
+    backrefs: yes # Chỉ sửa nếu tìm thấy dòng khớp regexp
+  become: true
+  notify: Restart Chronyd # Thông báo cho handler nếu file thay đổi
+
+- name: "Bước 11: Ensure custom NTP servers are present in chrony.conf"
+  ansible.builtin.blockinfile:
+    path: /etc/chrony.conf
+    block: |
+      # Custom NTP servers managed by Ansible
+      server 10.64.68.26 iburst prefer
+      server 10.64.68.27 iburst
+      server 10.64.68.32 iburst
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Custom NTP Servers" # Đánh dấu khối để quản lý
+    state: present
+  become: true
+  notify: Restart Chronyd # Thông báo cho handler nếu file thay đổi
+
+- name: "Bước 11: Ensure chronyd service is enabled and running"
+  ansible.builtin.systemd:
+    name: chronyd
+    state: started # Đảm bảo service đang chạy
+    enabled: true  # Đảm bảo service được bật khi khởi động
+  become: true
+
+# Tùy chọn: Task kiểm tra trạng thái chrony (không thay đổi hệ thống)
+- name: "Check chrony sources (optional)"
+  ansible.builtin.command: chronyc sources
+  register: chrony_sources_output
+  changed_when: false
+  become: true
+  tags: [ntp_check]
+
+- name: "Display chrony sources (optional)"
+  ansible.builtin.debug:
+    var: chrony_sources_output.stdout_lines
+  when: chrony_sources_output is defined
+  tags: [ntp_check]

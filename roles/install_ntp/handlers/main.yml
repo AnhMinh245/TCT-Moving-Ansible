@@ -1,0 +1,8 @@
+---
+# handlers file for roles/install_software_ntp
+- name: Restart Chronyd
+  ansible.builtin.systemd:
+    name: chronyd
+    state: restarted # Khởi động lại service
+  become: true
+  listen: Restart Chronyd # Tên phải khớp với notify trong tasks
