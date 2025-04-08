@@ -1,0 +1,21 @@
+---
+- name: Reboot Servers and Wait
+  hosts: all  # Ví dụ: webservers hoặc all
+  become: true                 # Cần quyền root để reboot
+  gather_facts: false            # Không cần thu thập facts trước khi reboot
+
+  tasks:
+    - name: Reboot the machine (wait for it to come back up)
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible" # Thông báo hiển thị khi bắt đầu reboot
+        connect_timeout: 5           # Thời gian chờ kết nối SSH ban đầu sau reboot (giây)
+        reboot_timeout: 1200         # Thời gian chờ tối đa cho quá trình reboot hoàn tất (giây)
+        pre_reboot_delay: 0          # Thời gian chờ trước khi thực hiện reboot (giây)
+        post_reboot_delay: 30         # Thời gian chờ sau khi máy kết nối lại được (giây)
+        test_command: whoami         # Lệnh kiểm tra sau khi kết nối lại (đảm bảo SSH hoạt động)
+      # register: reboot_result      # (Tùy chọn) Lưu kết quả vào biến
+
+    # (Tùy chọn) Bạn có thể thêm các task khác ở đây sẽ chạy sau khi reboot thành công
+    # - name: Verify application status after reboot
+    #   ansible.builtin.command: systemctl status myapp
+    #   changed_when: false
