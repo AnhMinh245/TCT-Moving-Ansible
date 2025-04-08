@@ -1,0 +1,14 @@
+---
+# handlers file for roles/system_tuning
+- name: Turn off swap
+  ansible.builtin.command: swapoff --all
+  become: true
+  listen: Turn off swap
+  failed_when: false # Bỏ qua lỗi nếu swap đã tắt
+
+- name: Restart tuned service
+  ansible.builtin.systemd:
+    name: tuned
+    state: restarted
+  become: true
+  listen: Restart tuned service

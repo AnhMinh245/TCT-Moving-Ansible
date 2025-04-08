@@ -1,0 +1,6 @@
+---
+- name: Configure DSE agent backup
+  hosts: all
+  become: true
+  roles:
+  - configure_dse_agent_backup # <--- Thêm role mới

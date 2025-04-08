@@ -1,0 +1,44 @@
+---
+# tasks file for roles/system_tuning
+
+- name: "Bước 14: Ensure cpupowerutils is installed for cpupower command"
+  ansible.builtin.yum:
+    name: cpupowerutils
+    state: present
+  become: true
+
+- name: "Bước 14: Set CPU governor to performance"
+  ansible.builtin.command: cpupower frequency-set --governor performance
+  become: true
+  changed_when: false # Lệnh này thường không báo thay đổi, chỉ thực thi
+  failed_when: false  # Có thể bỏ qua lỗi nếu cpupower không hỗ trợ trên CPU ảo hóa
+
+- name: "Bước 14: Disable zone_reclaim_mode (temporary)"
+  ansible.builtin.shell: echo 0 > /proc/sys/vm/zone_reclaim_mode
+  become: true
+  changed_when: false # Ghi vào /proc không phải là thay đổi trạng thái ổn định
+  # Lưu ý: Thay đổi này chỉ có hiệu lực đến khi reboot. Để giữ lại, cần thêm vào sysctl.conf
+
+- name: "Bước 14: Comment out swap entries in /etc/fstab"
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^\s*([^#\s]+\s+)+swap\s+' # Tìm dòng không phải comment có chứa 'swap'
+    line: '#\g'                      # Thêm dấu # vào đầu dòng tìm được
+    backrefs: yes
+  become: true
+  notify: Turn off swap # Thông báo cho handler để chạy swapoff
+
+- name: "Bước 14: Modify read_ahead_kb in tuned profile"
+  ansible.builtin.lineinfile:
+    path: /lib/tuned/throughput-performance/tuned.conf
+    regexp: '^readahead=>4096'
+    line: 'readahead=>0'
+    backrefs: yes
+  become: true
+  # Lưu ý: Task này giả định profile 'throughput-performance' đang được sử dụng.
+  # Có thể cần thêm logic để kiểm tra hoặc áp dụng profile này bằng module 'tuned'.
+  notify: Restart tuned service # Cần khởi động lại tuned để áp dụng
+
+# Cần flush handlers để chạy swapoff trước khi playbook kết thúc (nếu cần)
+- name: Flush handlers now
+  ansible.builtin.meta: flush_handlers

@@ -1,0 +1,43 @@
+---
+# tasks file for roles/configure_dse_agent_backup
+
+- name: "Bước 13: Create Datastax agent conf directory"
+  ansible.builtin.file:
+    path: /var/lib/datastax-agent/conf/
+    state: directory
+    owner: cassandra # Đặt owner/group ngay khi tạo hoặc ở bước sau
+    group: cassandra
+    mode: '0755'
+  become: true
+
+- name: "Bước 13: Create Datastax agent opsc_system_key file"
+  ansible.builtin.copy:
+    dest: /var/lib/datastax-agent/conf/opsc_system_key
+    content: "ECB:0UnFYZ9swrCpq/ExP748iw==" # Nội dung key [cite: 1]
+    owner: cassandra
+    group: cassandra
+    mode: '0600' # Quyền chỉ cho user cassandra đọc/ghi
+  become: true
+
+- name: "Bước 13: Ensure ownership of /var/lib/datastax-agent is cassandra:cassandra"
+  ansible.builtin.file:
+    path: /var/lib/datastax-agent
+    state: directory # Đảm bảo là thư mục
+    owner: cassandra
+    group: cassandra
+    recurse: yes # Áp dụng quyền sở hữu cho cả thư mục con và file bên trong
+  become: true
+  # Task này cũng sẽ đảm bảo quyền sở hữu cho thư mục conf và file key đã tạo ở trên
+
+- name: "Bước 13: Create backup directories"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root     # Hoặc user phù hợp cho backup, ví dụ: backupadm
+    group: root     # Hoặc group phù hợp
+    mode: '0755'
+  become: true
+  loop:
+    - /u01/scripts/backup
+    - /u01/log/scripts/backup_full
+    - /u01/log/scripts/backup_inc
