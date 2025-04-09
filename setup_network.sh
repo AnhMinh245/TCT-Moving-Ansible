@@ -13,8 +13,8 @@ BOND_MODE="802.3ad" # Các chế độ phổ biến khác: active-backup, balanc
 
 # Tên các card mạng vật lý sẽ được gộp (thay enoX và enoY bằng tên thực tế)
 # Sử dụng lệnh 'ip link' hoặc 'nmcli device status' để xem tên card mạng
-SLAVE1_IFNAME="enoX" # Ví dụ: eno1, eth0, enp3s0
-SLAVE2_IFNAME="enoY" # Ví dụ: eno3, eth1, enp4s0
+SLAVE1_IFNAME="eno12399np0" # Ví dụ: eno1, eth0, enp3s0
+SLAVE2_IFNAME="eno12419np2" # Ví dụ: eno3, eth1, enp4s0
 
 # Cấu hình VLAN
 VLAN_ID="X" # Thay X bằng ID VLAN số cụ thể (ví dụ: 100, 205)
@@ -28,10 +28,6 @@ VLAN_IP_ADDRESS="10.64.YY.xx/24" # Ví dụ: 10.64.100.55/24
 VLAN_GATEWAY="10.64.YY.1"        # Ví dụ: 10.64.100.1
 # Thay bằng địa chỉ DNS server của mạng bạn
 VLAN_DNS_SERVERS="10.64.89.11 10.64.89.13" # Ví dụ: "8.8.8.8 1.1.1.1" (cách nhau bởi dấu cách)
-
-# Hostname
-# Thay X bằng định danh duy nhất cho máy này
-NEW_HOSTNAME="dri-ehd_X" # Ví dụ: dri-ehd_01
 
 # --- Bắt đầu thực thi Script ---
 
@@ -77,17 +73,22 @@ sleep 5
 nmcli connection up "${BOND_NAME}" || echo "Cảnh báo: Không thể bật ${BOND_NAME} (có thể đã được bật)."
 nmcli connection up "${VLAN_CON_NAME}" || echo "Cảnh báo: Không thể bật ${VLAN_CON_NAME} (có thể đã được bật)."
 
-echo ">>> Đang đặt Hostname thành: ${NEW_HOSTNAME}..."
-hostnamectl set-hostname "${NEW_HOSTNAME}"
-if [ $? -ne 0 ]; then echo "Lỗi khi đặt hostname. Thoát."; exit 1; fi
-
 echo "============================================================"
-echo ">>> Cấu hình hoàn tất! <<<"
-echo "Hostname hiện tại: $(hostname)"
+echo ">>> Cấu hình mạng hoàn tất! <<<"
 echo "Kiểm tra trạng thái kết nối:"
 nmcli connection show --active
+echo "------------------------------------------------------------"
 echo "Kiểm tra địa chỉ IP của VLAN ${VLAN_IFNAME}:"
 ip addr show "${VLAN_IFNAME}"
+echo "------------------------------------------------------------"
+echo ">>> Đang kiểm tra kết nối đến Gateway (${VLAN_GATEWAY})..."
+# Ping 4 lần đến gateway, chờ tối đa 1 giây cho mỗi lần trả lời
+ping -c 4 -W 1 "${VLAN_GATEWAY}"
+if [ $? -eq 0 ]; then
+    echo ">>> Ping đến Gateway thành công!"
+else
+    echo ">>> !!! Cảnh báo: Không thể ping đến Gateway ${VLAN_GATEWAY}."
+fi
 echo "============================================================"
 
 exit 0
