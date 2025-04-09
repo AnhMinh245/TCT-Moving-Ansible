@@ -1,108 +1,129 @@
 #!/bin/bash
 
 # ====================================================================
-# Script cấu hình Network Bonding, VLAN và Hostname bằng nmcli
-# Phiên bản: Interactive
+# Script cau hinh Network Bonding, VLAN va Hostname bang nmcli
+# Phien ban: Interactive (Tieng Viet khong dau)
 # ====================================================================
 
-# --- Giá trị cấu hình cố định ---
+# --- Gia tri cau hinh co dinh ---
 BOND_NAME="bond0"
-BOND_MODE="802.3ad" # Đảm bảo chế độ này phù hợp với cấu hình switch
+BOND_MODE="802.3ad" # Dam bao che do nay phu hop voi cau hinh switch
 
-# --- Giá trị mặc định (Người dùng có thể thay đổi) ---
+# --- Gia tri mac dinh (Nguoi dung co the thay doi) ---
 DEFAULT_SLAVE1="eno12399np0"
 DEFAULT_SLAVE2="eno12419np2"
-DEFAULT_DNS="10.64.89.11 10.64.89.13" # DNS Server gợi ý
+DEFAULT_DNS="10.64.89.11 10.64.89.13" # DNS Server goi y
 
-# --- Lấy thông tin hệ thống ---
-CURRENT_HOSTNAME=$(hostname) # Lấy hostname hiện tại
+# --- Lay thong tin he thong ---
+CURRENT_HOSTNAME=$(hostname) # Lay hostname hien tai
 
-# --- Bắt đầu tương tác với người dùng ---
+# --- Bat dau tuong tac voi nguoi dung ---
 echo "============================================================"
-echo "Script Cấu Hình Mạng & Hostname (Interactive)"
+echo "   Script Cau Hinh Mang & Hostname (Interactive)"
 echo "============================================================"
-echo "Nhập các giá trị cấu hình yêu cầu."
-echo "Nhấn Enter để chấp nhận giá trị mặc định trong dấu ngoặc []."
+echo "Nhap cac gia tri cau hinh yeu cau."
+echo "Nhan Enter de chap nhan gia tri mac dinh trong dau ngoac []."
 echo ""
 
-# 1. Nhập Hostname (Mặc định là hostname hiện tại)
-read -p "Nhập Hostname mới [${CURRENT_HOSTNAME}]: " -e -i "${CURRENT_HOSTNAME}" NEW_HOSTNAME
-# Nếu người dùng chỉ nhấn Enter, NEW_HOSTNAME sẽ giữ giá trị CURRENT_HOSTNAME
+# 1. Nhap Hostname (Mac dinh la hostname hien tai)
+read -p "Nhap Hostname moi [${CURRENT_HOSTNAME}]: " -e -i "${CURRENT_HOSTNAME}" NEW_HOSTNAME
 
-# 2. Nhập tên card mạng vật lý (có giá trị mặc định)
-read -p "Nhập tên card mạng vật lý thứ nhất [${DEFAULT_SLAVE1}]: " -e -i "${DEFAULT_SLAVE1}" SLAVE1_IFNAME
-read -p "Nhập tên card mạng vật lý thứ hai [${DEFAULT_SLAVE2}]: " -e -i "${DEFAULT_SLAVE2}" SLAVE2_IFNAME
+# 2. Nhap ten card mang vat ly (co gia tri mac dinh)
+read -p "Nhap ten card mang vat ly thu nhat [${DEFAULT_SLAVE1}]: " -e -i "${DEFAULT_SLAVE1}" SLAVE1_IFNAME
+read -p "Nhap ten card mang vat ly thu hai [${DEFAULT_SLAVE2}]: " -e -i "${DEFAULT_SLAVE2}" SLAVE2_IFNAME
 
-# 3. Nhập VLAN ID (Bắt buộc, phải là số)
+# 3. Nhap VLAN ID (Bat buoc, phai la so)
+# Cap nhat chi dan VLAN
 while true; do
-    read -p "Nhập VLAN ID (ví dụ: 100, 205): " VLAN_ID
-    # Kiểm tra xem có phải là số nguyên dương không
+    read -p "Nhap VLAN ID (232: Trans, 233: Search, 234: Ana, 235: Docs): " VLAN_ID
+    # Kiem tra xem co phai la so nguyen duong khong
     if [[ "$VLAN_ID" =~ ^[1-9][0-9]*$ ]] && [ "$VLAN_ID" -ge 1 ] && [ "$VLAN_ID" -le 4094 ]; then
-        break # Thoát vòng lặp nếu hợp lệ
+        break # Thoat vong lap neu hop le
     else
-        echo "Lỗi: VLAN ID phải là một số nguyên dương từ 1 đến 4094."
+        echo "Loi: VLAN ID phai la mot so nguyen duong tu 1 den 4094."
     fi
 done
 
-# 4. Nhập cấu hình IP cho VLAN (Bắt buộc)
-read -p "Nhập địa chỉ IP và Prefix cho VLAN (ví dụ: 10.64.100.55/24): " VLAN_IP_ADDRESS
+# 4. Nhap cau hinh IP cho VLAN (Bat buoc)
+read -p "Nhap dia chi IP va Prefix cho VLAN (Vi du: 10.64.100.55/24): " VLAN_IP_ADDRESS
 while [[ -z "$VLAN_IP_ADDRESS" ]]; do
-    echo "Lỗi: Địa chỉ IP không được để trống."
-    read -p "Nhập địa chỉ IP và Prefix cho VLAN (ví dụ: 10.64.100.55/24): " VLAN_IP_ADDRESS
+    echo "Loi: Dia chi IP khong duoc de trong."
+    read -p "Nhap dia chi IP va Prefix cho VLAN (Vi du: 10.64.100.55/24): " VLAN_IP_ADDRESS
 done
 
-read -p "Nhập địa chỉ Gateway cho VLAN (ví dụ: 10.64.100.1): " VLAN_GATEWAY
+read -p "Nhap dia chi Gateway cho VLAN (Vi du: 10.64.100.1): " VLAN_GATEWAY
 while [[ -z "$VLAN_GATEWAY" ]]; do
-    echo "Lỗi: Gateway không được để trống."
-    read -p "Nhập địa chỉ Gateway cho VLAN (ví dụ: 10.64.100.1): " VLAN_GATEWAY
+    echo "Loi: Gateway khong duoc de trong."
+    read -p "Nhap dia chi Gateway cho VLAN (Vi du: 10.64.100.1): " VLAN_GATEWAY
 done
 
-read -p "Nhập địa chỉ DNS Server (cách nhau bởi dấu cách) [${DEFAULT_DNS}]: " -e -i "${DEFAULT_DNS}" VLAN_DNS_SERVERS
-# Nếu người dùng nhấn Enter, VLAN_DNS_SERVERS sẽ giữ giá trị DEFAULT_DNS
+read -p "Nhap dia chi DNS Server (cach nhau boi dau cach) [${DEFAULT_DNS}]: " -e -i "${DEFAULT_DNS}" VLAN_DNS_SERVERS
 
-# --- Tạo tên động cho VLAN ---
+# --- Tao ten dong cho VLAN ---
 VLAN_CON_NAME="VLAN_${VLAN_ID}"
-VLAN_IFNAME="VLAN_${VLAN_ID}" # Hoặc có thể dùng bond0.${VLAN_ID} tùy hệ thống/sở thích
+VLAN_IFNAME="VLAN_${VLAN_ID}" # Hoac co the dung bond0.${VLAN_ID} tuy he thong/so thich
 
-# --- Bắt đầu thực thi cấu hình ---
-
-# 1. Cấu hình Hostname
+# --- Hien thi Tom Tat Thong Tin Da Nhap ---
 echo ""
-echo ">>> Đang cấu hình Hostname thành: ${NEW_HOSTNAME}..."
+echo "============================================================"
+echo ">>> Tom Tat Thong Tin Cau Hinh Da Nhap <<<"
+echo "============================================================"
+echo "Hostname              : ${NEW_HOSTNAME}"
+echo "Card Mang 1 (Slave 1) : ${SLAVE1_IFNAME}"
+echo "Card Mang 2 (Slave 2) : ${SLAVE2_IFNAME}"
+echo "VLAN ID               : ${VLAN_ID}"
+echo "   => Ten Ket Noi VLAN : ${VLAN_CON_NAME}"
+echo "   => Ten Interface VLAN: ${VLAN_IFNAME}"
+echo "IP/Prefix VLAN        : ${VLAN_IP_ADDRESS}"
+echo "Gateway VLAN          : ${VLAN_GATEWAY}"
+echo "DNS Servers           : ${VLAN_DNS_SERVERS}"
+echo "Bond Interface        : ${BOND_NAME} (Mode: ${BOND_MODE})"
+echo "============================================================"
+# Tam dung de nguoi dung xem lai (tuy chon)
+# read -p "Nhan Enter de tiep tuc hoac Ctrl+C de huy..."
+echo ""
+
+# --- Bat dau thuc thi cau hinh ---
+
+# 1. Cau hinh Hostname
+echo ">>> Dang cau hinh Hostname thanh: ${NEW_HOSTNAME}..."
 hostnamectl set-hostname "${NEW_HOSTNAME}"
 if [ $? -ne 0 ]; then
-    echo "Lỗi khi cấu hình hostname. Vui lòng kiểm tra quyền (cần chạy bằng root/sudo)."
-    # Quyết định có nên thoát hay không tùy thuộc vào mức độ quan trọng
-    # exit 1
+    echo "Loi khi cau hinh hostname. Vui long kiem tra quyen (can chay bang root/sudo)."
 else
-    echo "Hostname đã được cập nhật thành công (có thể cần đăng nhập lại để thấy thay đổi ở mọi nơi)."
+    echo "Hostname da duoc cap nhat thanh cong (co the can dang nhap lai de thay thay doi o moi noi)."
 fi
 
-
-# 2. Tạo Bond Interface
-echo ">>> Đang tạo Bond Interface: ${BOND_NAME}..."
+# 2. Tao Bond Interface
+echo ">>> Dang tao Bond Interface: ${BOND_NAME}..."
 nmcli connection add type bond con-name "${BOND_NAME}" ifname "${BOND_NAME}" bond.options "mode=${BOND_MODE}" ipv4.method disabled ipv6.method ignore connection.autoconnect yes
-if [ $? -ne 0 ]; then echo "Lỗi khi tạo bond ${BOND_NAME}. Thoát."; exit 1; fi
+if [ $? -ne 0 ]; then echo "Loi khi tao bond ${BOND_NAME}. Thoat."; exit 1; fi
 
-# 3. Thêm card mạng vật lý vào Bond
-echo ">>> Đang thêm card mạng vật lý ${SLAVE1_IFNAME} vào ${BOND_NAME}..."
-nmcli device disconnect "${SLAVE1_IFNAME}" > /dev/null 2>&1 # Ngắt kết nối cũ nếu có
+# 3. Them card mang vat ly vao Bond
+echo ">>> Dang them card mang vat ly ${SLAVE1_IFNAME} vao ${BOND_NAME}..."
+nmcli device disconnect "${SLAVE1_IFNAME}" > /dev/null 2>&1 # Ngat ket noi cu neu co
 nmcli connection add type ethernet slave-type bond con-name "${BOND_NAME}-port1" ifname "${SLAVE1_IFNAME}" master "${BOND_NAME}" connection.autoconnect yes
-if [ $? -ne 0 ]; then echo "Lỗi khi thêm ${SLAVE1_IFNAME} vào ${BOND_NAME}. Thoát."; exit 1; fi
+if [ $? -ne 0 ]; then echo "Loi khi them ${SLAVE1_IFNAME} vao ${BOND_NAME}. Thoat."; exit 1; fi
 
-echo ">>> Đang thêm card mạng vật lý ${SLAVE2_IFNAME} vào ${BOND_NAME}..."
-nmcli device disconnect "${SLAVE2_IFNAME}" > /dev/null 2>&1 # Ngắt kết nối cũ nếu có
-# Đảm bảo tên connection là duy nhất, ví dụ: port2 hoặc port3 tùy ý
+echo ">>> Dang them card mang vat ly ${SLAVE2_IFNAME} vao ${BOND_NAME}..."
+nmcli device disconnect "${SLAVE2_IFNAME}" > /dev/null 2>&1 # Ngat ket noi cu neu co
 nmcli connection add type ethernet slave-type bond con-name "${BOND_NAME}-port2" ifname "${SLAVE2_IFNAME}" master "${BOND_NAME}" connection.autoconnect yes
-if [ $? -ne 0 ]; then echo "Lỗi khi thêm ${SLAVE2_IFNAME} vào ${BOND_NAME}. Thoát."; exit 1; fi
+if [ $? -ne 0 ]; then echo "Loi khi them ${SLAVE2_IFNAME} vao ${BOND_NAME}. Thoat."; exit 1; fi
 
-# 4. Tạo VLAN Interface trên Bond
-echo ">>> Đang tạo VLAN Interface: ${VLAN_CON_NAME} (ID: ${VLAN_ID}) trên ${BOND_NAME}..."
+# 4. Tao VLAN Interface tren Bond
+echo ">>> Dang tao VLAN Interface: ${VLAN_CON_NAME} (ID: ${VLAN_ID}) tren ${BOND_NAME}..."
+# Kiem tra xem connection VLAN da ton tai chua, neu co thi xoa di truoc khi tao moi
+EXISTING_VLAN=$(nmcli -g NAME connection show | grep "^${VLAN_CON_NAME}$")
+if [ -n "$EXISTING_VLAN" ]; then
+    echo "Canh bao: Ket noi VLAN ${VLAN_CON_NAME} da ton tai. Dang xoa de tao moi..."
+    nmcli connection delete "${VLAN_CON_NAME}" || echo "Loi khi xoa ket noi VLAN cu."
+    sleep 1
+fi
 nmcli connection add type vlan con-name "${VLAN_CON_NAME}" ifname "${VLAN_IFNAME}" vlan.parent "${BOND_NAME}" vlan.id "${VLAN_ID}" connection.autoconnect yes
-if [ $? -ne 0 ]; then echo "Lỗi khi tạo VLAN ${VLAN_CON_NAME}. Thoát."; exit 1; fi
+if [ $? -ne 0 ]; then echo "Loi khi tao VLAN ${VLAN_CON_NAME}. Thoat."; exit 1; fi
 
-# 5. Cấu hình IP cho VLAN
-echo ">>> Đang cấu hình địa chỉ IP cho VLAN ${VLAN_CON_NAME}..."
+# 5. Cau hinh IP cho VLAN
+echo ">>> Dang cau hinh dia chi IP cho VLAN ${VLAN_CON_NAME}..."
 nmcli connection modify "${VLAN_CON_NAME}" \
     ipv4.addresses "${VLAN_IP_ADDRESS}" \
     ipv4.gateway "${VLAN_GATEWAY}" \
@@ -110,40 +131,31 @@ nmcli connection modify "${VLAN_CON_NAME}" \
     ipv4.method manual \
     ipv6.method ignore \
     connection.autoconnect yes
-if [ $? -ne 0 ]; then echo "Lỗi khi cấu hình IP cho VLAN ${VLAN_CON_NAME}. Thoát."; exit 1; fi
+if [ $? -ne 0 ]; then echo "Loi khi cau hinh IP cho VLAN ${VLAN_CON_NAME}. Thoat."; exit 1; fi
 
-# 6. Tải lại cấu hình và kích hoạt
-echo ">>> Đang tải lại cấu hình NetworkManager..."
+# 6. Tai lai cau hinh va kich hoat
+echo ">>> Dang tai lai cau hinh NetworkManager..."
 nmcli connection reload
-if [ $? -ne 0 ]; then echo "Lỗi khi tải lại cấu hình NetworkManager."; fi # Không cần thoát nếu chỉ reload lỗi nhẹ
+if [ $? -ne 0 ]; then echo "Loi khi tai lai cau hinh NetworkManager."; fi
 
-echo ">>> Đang kích hoạt các kết nối (Bond và VLAN)..."
-# Chờ một chút để các thiết bị sẵn sàng
+echo ">>> Dang kich hoat cac ket noi (Bond va VLAN)..."
 sleep 5
 
-# Kích hoạt Bond trước, sau đó đến VLAN
-nmcli connection up "${BOND_NAME}" || echo "Cảnh báo: Không thể bật ${BOND_NAME} (có thể đã được bật hoặc có lỗi khác)."
-sleep 2 # Thêm độ trễ nhỏ giữa việc bật bond và vlan
-nmcli connection up "${VLAN_CON_NAME}" || echo "Cảnh báo: Không thể bật ${VLAN_CON_NAME} (có thể đã được bật hoặc có lỗi khác)."
+# Kich hoat Bond truoc, sau do den VLAN
+nmcli connection up "${BOND_NAME}" || echo "Canh bao: Khong the bat ${BOND_NAME} (co the da duoc bat hoac co loi khac)."
+sleep 2
+nmcli connection up "${VLAN_CON_NAME}" || echo "Canh bao: Khong the bat ${VLAN_CON_NAME} (co the da duoc bat hoac co loi khac)."
 
-# --- Hiển thị kết quả ---
+# --- Hien thi ket qua ---
 echo "============================================================"
-echo ">>> Cấu hình mạng và hostname hoàn tất! <<<"
-echo "Hostname hiện tại: $(hostname)"
+echo ">>> Cau hinh mang va hostname hoan tat! <<<"
+echo "Hostname hien tai: $(hostname)"
 echo "------------------------------------------------------------"
-echo "Kiểm tra trạng thái kết nối:"
+echo "Kiem tra trang thai ket noi:"
 nmcli connection show --active
 echo "------------------------------------------------------------"
-echo "Kiểm tra địa chỉ IP của VLAN ${VLAN_IFNAME}:"
+echo "Kiem tra dia chi IP cua VLAN ${VLAN_IFNAME}:"
 ip addr show "${VLAN_IFNAME}"
-echo "------------------------------------------------------------"
-echo ">>> Đang kiểm tra kết nối đến Gateway (${VLAN_GATEWAY})..."
-ping -c 4 -W 1 "${VLAN_GATEWAY}"
-if [ $? -eq 0 ]; then
-    echo ">>> Ping đến Gateway thành công!"
-else
-    echo ">>> !!! Cảnh báo: Không thể ping đến Gateway ${VLAN_GATEWAY}. Kiểm tra lại cấu hình IP/Gateway/VLAN hoặc kết nối vật lý."
-fi
 echo "============================================================"
 
 exit 0
